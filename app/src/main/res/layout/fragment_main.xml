@@ -25,8 +25,8 @@
         android:lineHeight="@dimen/_22sdp"
         android:text="Press the mic button to statrt recording"
         android:textAlignment="center"
-        android:textSize="20sp"
         android:textColor="@color/blue"
+        android:textSize="20sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/imageView2" />
@@ -37,44 +37,51 @@
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/_30sdp"
         android:textAlignment="center"
-        android:textSize="62sp"
-
+        android:textSize="52sp"
         app:layout_constraintTop_toBottomOf="@id/heading_text" />
 
-    <androidx.cardview.widget.CardView
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/mic_card"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_margin="@dimen/_32sdp"
         android:background="@color/blue"
         android:backgroundTint="@color/blue"
         app:cardCornerRadius="@dimen/_132sdp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-android:layout_margin="@dimen/_32sdp"
-        android:id="@+id/mic_card"
+        app:rippleColor="@color/dark_blue"
+
         >
 
         <ImageView
-            android:layout_width="@dimen/_100sdp"
-            android:layout_height="@dimen/_100sdp"
+            android:id="@+id/record_btn"
+            android:layout_width="@dimen/_70sdp"
+            android:layout_height="@dimen/_70sdp"
             android:padding="@dimen/_20sdp"
             android:src="@drawable/ic_baseline_mic_24"
             app:tint="@color/white"
 
             />
 
-    </androidx.cardview.widget.CardView>
+    </com.google.android.material.card.MaterialCardView>
 
     <ImageView
+        android:id="@+id/list"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/list"
-        app:layout_constraintTop_toTopOf="@id/mic_card"
+        android:layout_marginEnd="@dimen/_32sdp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:clickable="true"
+        android:focusable="true"
+
+        android:src="@drawable/ic_baseline_menu_24"
         app:layout_constraintBottom_toBottomOf="@id/mic_card"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginEnd="@dimen/_32sdp"
-        android:src="@drawable/ic_baseline_menu_24"
-        />
+        app:layout_constraintTop_toTopOf="@id/mic_card"
+
+   />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

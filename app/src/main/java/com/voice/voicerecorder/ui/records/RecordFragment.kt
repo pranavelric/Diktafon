@@ -5,11 +5,12 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import com.voice.voicerecorder.R
+
 import com.voice.voicerecorder.databinding.FragmentRecordBinding
 
 
 class RecordFragment : Fragment() {
+
 
 
     private lateinit var binding: FragmentRecordBinding
@@ -18,10 +19,18 @@ class RecordFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         binding = FragmentRecordBinding.inflate(inflater, container, false)
-       setData()
-
+        setData()
+        setClickListeners()
         return binding.root
     }
+
+    private fun setClickListeners() {
+
+
+
+    }
+
+
 
     private fun setData() {
 
