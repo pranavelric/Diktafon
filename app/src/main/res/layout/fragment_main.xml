@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ui.main.MainFragment">
+
+
+    <ImageView
+        android:id="@+id/imageView2"
+        android:layout_width="300dp"
+        android:layout_height="300dp"
+        android:src="@drawable/ic_voice_control_rafiki"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/heading_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/_32sdp"
+        android:layout_marginEnd="@dimen/_32sdp"
+        android:lineHeight="@dimen/_22sdp"
+        android:text="Press the mic button to statrt recording"
+        android:textAlignment="center"
+        android:textSize="20sp"
+        android:textColor="@color/blue"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/imageView2" />
+
+    <Chronometer
+        android:id="@+id/timer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/_30sdp"
+        android:textAlignment="center"
+        android:textSize="62sp"
+
+        app:layout_constraintTop_toBottomOf="@id/heading_text" />
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@color/blue"
+        android:backgroundTint="@color/blue"
+        app:cardCornerRadius="@dimen/_132sdp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+android:layout_margin="@dimen/_32sdp"
+        android:id="@+id/mic_card"
+        >
+
+        <ImageView
+            android:layout_width="@dimen/_100sdp"
+            android:layout_height="@dimen/_100sdp"
+            android:padding="@dimen/_20sdp"
+            android:src="@drawable/ic_baseline_mic_24"
+            app:tint="@color/white"
+
+            />
+
+    </androidx.cardview.widget.CardView>
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/list"
+        app:layout_constraintTop_toTopOf="@id/mic_card"
+        app:layout_constraintBottom_toBottomOf="@id/mic_card"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginEnd="@dimen/_32sdp"
+        android:src="@drawable/ic_baseline_menu_24"
+        />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>
