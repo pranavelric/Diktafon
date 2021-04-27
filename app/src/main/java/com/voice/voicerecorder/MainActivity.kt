@@ -1,7 +1,10 @@
 package com.voice.voicerecorder
 
+import android.Manifest
+import android.content.pm.PackageManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import androidx.core.app.ActivityCompat
 import androidx.navigation.NavController
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment
@@ -35,6 +38,18 @@ class MainActivity : AppCompatActivity() {
         setFullScreenForNotch()
     }
 
+
+    fun checkPermissions():Boolean{
+
+        if(ActivityCompat.checkSelfPermission(this@MainActivity,Manifest.permission.RECORD_AUDIO)==PackageManager.PERMISSION_GRANTED){
+            return true
+        }
+        else{
+            ActivityCompat.requestPermissions(this@MainActivity, arrayOf(Manifest.permission.RECORD_AUDIO),121)
+            return false
+        }
+
+    }
 
 
     override fun onSupportNavigateUp(): Boolean {
