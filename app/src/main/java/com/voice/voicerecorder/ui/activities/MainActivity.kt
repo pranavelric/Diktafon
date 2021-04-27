@@ -1,4 +1,4 @@
-package com.voice.voicerecorder
+package com.voice.voicerecorder.ui.activities
 
 import android.Manifest
 import android.content.pm.PackageManager
@@ -7,13 +7,13 @@ import android.os.Bundle
 import androidx.core.app.ActivityCompat
 import androidx.navigation.NavController
 import androidx.navigation.findNavController
-import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.NavigationUI
+import com.voice.voicerecorder.R
 import com.voice.voicerecorder.databinding.ActivityMainBinding
-import com.voice.voicerecorder.utils.hideSystemUI
 import com.voice.voicerecorder.utils.setFullScreenForNotch
-import com.voice.voicerecorder.utils.setFullScreenWithBtmNav
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
 
@@ -21,13 +21,12 @@ class MainActivity : AppCompatActivity() {
         findNavController(R.id.fragment)
     }
 
-  lateinit var mainBinding: ActivityMainBinding
+    lateinit var mainBinding: ActivityMainBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         mainBinding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(mainBinding.root)
-
 
 
     }
@@ -39,13 +38,20 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    fun checkPermissions():Boolean{
+    fun checkPermissions(): Boolean {
 
-        if(ActivityCompat.checkSelfPermission(this@MainActivity,Manifest.permission.RECORD_AUDIO)==PackageManager.PERMISSION_GRANTED){
+        if (ActivityCompat.checkSelfPermission(
+                this@MainActivity,
+                Manifest.permission.RECORD_AUDIO
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
             return true
-        }
-        else{
-            ActivityCompat.requestPermissions(this@MainActivity, arrayOf(Manifest.permission.RECORD_AUDIO),121)
+        } else {
+            ActivityCompat.requestPermissions(
+                this@MainActivity,
+                arrayOf(Manifest.permission.RECORD_AUDIO),
+                121
+            )
             return false
         }
 

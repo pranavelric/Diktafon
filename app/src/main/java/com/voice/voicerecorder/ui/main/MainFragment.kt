@@ -2,13 +2,14 @@ package com.voice.voicerecorder.ui.main
 
 import android.media.MediaRecorder
 import android.os.Bundle
+import android.os.SystemClock
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
-import com.voice.voicerecorder.MainActivity
+import com.voice.voicerecorder.ui.activities.MainActivity
 import com.voice.voicerecorder.R
 import com.voice.voicerecorder.databinding.FragmentMainBinding
 import com.voice.voicerecorder.utils.setFullScreenWithBtmNav
@@ -20,7 +21,7 @@ class MainFragment : Fragment() {
     private var isRecording: Boolean = false
     private lateinit var binding: FragmentMainBinding
 
-    private lateinit var mediaRecorder: MediaRecorder
+    private var mediaRecorder: MediaRecorder? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -59,8 +60,9 @@ class MainFragment : Fragment() {
 
         } else {
 
-            isRecording = true
+
             if ((activity as MainActivity).checkPermissions()) {
+                isRecording = true
                 startRecording()
                 binding.recordBtn.setImageDrawable(activity?.let {
                     ContextCompat.getDrawable(it, R.drawable.ic_baseline_mic_off_24)
@@ -73,33 +75,42 @@ class MainFragment : Fragment() {
     }
 
     private fun stopRecording() {
+        binding.timer.stop()
 
-        mediaRecorder.stop()
-        mediaRecorder.release()
+        mediaRecorder?.stop()
+        mediaRecorder?.release()
         mediaRecorder = null
+        binding.headingText.text = "Recording stopped, file saved"
 
     }
 
     private fun startRecording() {
+
+        binding.timer.base = SystemClock.elapsedRealtime()
+        binding.timer.start()
+
 
         val filepath = activity?.getExternalFilesDir("/")?.absolutePath
         val formatter = SimpleDateFormat("yyyy_MM_dd_hh_ss", Locale.ENGLISH)
         val filename = "filename" + formatter.format(Date()) + ".3gp"
 
 
+        binding.headingText.text = "Recording started for file: ${filename}"
+
+
         mediaRecorder = MediaRecorder().apply {
             setAudioSource(MediaRecorder.AudioSource.MIC)
             setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP)
-            setOutputFile(filepath + "/" + filename)
+            setOutputFile("$filepath/$filename")
             setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB)
         }
         try {
-            mediaRecorder.prepare()
+            mediaRecorder?.prepare()
         } catch (e: Exception) {
             e.printStackTrace()
         }
 
-        mediaRecorder.start()
+        mediaRecorder?.start()
     }
 
 

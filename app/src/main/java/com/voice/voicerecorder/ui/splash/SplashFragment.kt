@@ -6,7 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.navigation.fragment.findNavController
-import com.voice.voicerecorder.MainActivity
+import com.voice.voicerecorder.ui.activities.MainActivity
 import com.voice.voicerecorder.R
 import com.voice.voicerecorder.databinding.FragmentSplashBinding
 import com.voice.voicerecorder.utils.CoroutinesHelper
