@@ -7,6 +7,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.voice.voicerecorder.R
+import com.voice.voicerecorder.data.Record
 import com.voice.voicerecorder.databinding.VoiceItemBinding
 import java.io.File
 import java.text.DateFormat
@@ -14,19 +15,20 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 class VoiceRecordAdapter :
-    ListAdapter<File, VoiceRecordAdapter.MyViewHolder>(VoiceRecorderDiffUtilCallBack()) {
+    ListAdapter<Record, VoiceRecordAdapter.MyViewHolder>(VoiceRecorderDiffUtilCallBack()) {
 
     inner class MyViewHolder(private val voiceItem: VoiceItemBinding) :
         RecyclerView.ViewHolder(voiceItem.root) {
 
-        fun bind(file: File, position: Int) {
+        fun bind(file: Record, position: Int) {
 
 
-            voiceItem.itemName.text = file.name
+            voiceItem.itemName.text = file.title
 
 
             val format = SimpleDateFormat("yyy/MMM/dd", Locale.ENGLISH)
-            val date = format.format(Date(file.lastModified()))
+            val f = File(file.filePath)
+            val date = format.format(Date(f.lastModified()))
 
             voiceItem.itemDate.text = date
 
@@ -45,13 +47,13 @@ class VoiceRecordAdapter :
 
     }
 
-    class VoiceRecorderDiffUtilCallBack : DiffUtil.ItemCallback<File>() {
-        override fun areItemsTheSame(oldItem: File, newItem: File): Boolean {
-            return oldItem == newItem
+    class VoiceRecorderDiffUtilCallBack : DiffUtil.ItemCallback<Record>() {
+        override fun areItemsTheSame(oldItem: Record, newItem: Record): Boolean {
+            return oldItem.id == newItem.id
         }
 
-        override fun areContentsTheSame(oldItem: File, newItem: File): Boolean {
-            return oldItem.name == newItem.name
+        override fun areContentsTheSame(oldItem: Record, newItem: Record): Boolean {
+            return oldItem == newItem
         }
 
     }
@@ -75,9 +77,9 @@ class VoiceRecordAdapter :
         return position
     }
 
-    private var onVoiceItemClickListener: ((File, Int) -> Unit)? = null
+    private var onVoiceItemClickListener: ((Record, Int) -> Unit)? = null
 
-    fun setOnVoiceItemClickListener(listener: (File, Int) -> Unit) {
+    fun setOnVoiceItemClickListener(listener: (Record, Int) -> Unit) {
         onVoiceItemClickListener = listener
     }
 

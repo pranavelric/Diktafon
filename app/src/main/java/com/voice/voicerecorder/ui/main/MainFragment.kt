@@ -1,40 +1,88 @@
 package com.voice.voicerecorder.ui.main
 
 import android.app.AlertDialog
-import android.content.DialogInterface
-import android.media.MediaRecorder
 import android.os.Bundle
 import android.os.SystemClock
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
-import com.voice.voicerecorder.ui.activities.MainActivity
 import com.voice.voicerecorder.R
+import com.voice.voicerecorder.data.Record
 import com.voice.voicerecorder.databinding.FragmentMainBinding
+import com.voice.voicerecorder.ui.activities.MainActivity
+import com.voice.voicerecorder.utils.RecordState
 import com.voice.voicerecorder.utils.setFullScreenWithBtmNav
+import com.voice.voicerecorder.utils.toast
+import dagger.hilt.android.AndroidEntryPoint
 import java.text.SimpleDateFormat
 import java.util.*
 
 
+@AndroidEntryPoint
 class MainFragment : Fragment() {
+
+    private val viewModel: RecordViewModel by lazy {
+        ViewModelProvider(this).get(RecordViewModel::class.java)
+    }
+
     private var isRecording: Boolean = false
     private lateinit var binding: FragmentMainBinding
-
-    private var mediaRecorder: MediaRecorder? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         binding = FragmentMainBinding.inflate(inflater, container, false)
 
+        subscribe()
         setClickListeners()
 
         return binding.root
+    }
+
+    private fun subscribe() {
+        viewModel.recordState.observe(viewLifecycleOwner, { recordState ->
+            when (recordState) {
+                is RecordState.Recording -> {
+
+                    //disable the edit text
+                    isRecording = true
+                    switchButtonDrawble(isRecording)
+                }
+                is RecordState.Done<Record> -> {
+                    isRecording = false
+                    switchButtonDrawble(isRecording)
+
+                    context?.toast("file Saved!")
+                }
+                is RecordState.Error -> {
+                    // request focus and chronometer 0
+                }
+            }
+
+        })
+    }
+
+    private fun switchButtonDrawble(recording: Boolean) {
+
+        if (recording) {
+            binding.recordBtn.setImageDrawable(
+                activity?.let {
+                    ContextCompat.getDrawable(it, R.drawable.ic_baseline_mic_off_24)
+                }
+            )
+        } else {
+            binding.recordBtn.setImageDrawable(
+                activity?.let {
+                    ContextCompat.getDrawable(it, R.drawable.ic_baseline_mic_24)
+                }
+            )
+        }
+
     }
 
     private fun setClickListeners() {
@@ -47,28 +95,23 @@ class MainFragment : Fragment() {
             } else {
                 findNavController().navigate(R.id.action_mainFragment_to_recordFragment)
             }
-
         }
 
-        binding.micCard.setOnClickListener {
-            setRecordBtnClickListener()
-        }
+        binding.micCard.setOnClickListener { setRecordBtnClickListener() }
     }
 
     private fun showAlertDialog() {
         val dialogBuilder = AlertDialog.Builder(context)
         dialogBuilder.setPositiveButton(
             "Ok"
-        ) { dialog, which ->
+        ) { _, _ ->
 
             stopRecording()
             findNavController().navigate(R.id.action_mainFragment_to_recordFragment)
             isRecording = false
         }
         dialogBuilder.setNegativeButton("Cancel", null)
-
         val dialog = dialogBuilder.create()
-
         dialog.setTitle("Audio still recording")
         dialog.setMessage("Are you sure you want to stop recording?")
         dialog.show()
@@ -78,46 +121,17 @@ class MainFragment : Fragment() {
 
     private fun setRecordBtnClickListener() {
         if (isRecording) {
-
-
             stopRecording()
-
-            binding.recordBtn.setImageDrawable(
-                activity?.let {
-                    ContextCompat.getDrawable(it, R.drawable.ic_baseline_mic_24)
-                }
-            )
-            isRecording = false
-
         } else {
-
-
-            if ((activity as MainActivity).checkPermissions()) {
-                isRecording = true
-                startRecording()
-                binding.recordBtn.setImageDrawable(activity?.let {
-                    ContextCompat.getDrawable(it, R.drawable.ic_baseline_mic_off_24)
-                }
-                )
-
-            }
-
+            startRecording()
         }
     }
 
+
     private fun stopRecording() {
-
-
         binding.timer.stop()
-        mediaRecorder?.stop()
-        mediaRecorder?.release()
-        mediaRecorder = null
+        viewModel.stopRecording(null)
         binding.headingText.text = "Recording stopped, file saved"
-        binding.recordBtn.setImageDrawable(activity?.let {
-            ContextCompat.getDrawable(it, R.drawable.ic_baseline_mic_24)
-        }
-        )
-        isRecording = false
 
     }
 
@@ -134,20 +148,13 @@ class MainFragment : Fragment() {
 
         binding.headingText.text = "Recording started for file: ${filename}"
 
-
-        mediaRecorder = MediaRecorder().apply {
-            setAudioSource(MediaRecorder.AudioSource.MIC)
-            setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP)
-            setOutputFile("$filepath/$filename")
-            setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB)
+        if (filepath != null) {
+            viewModel.startRecording(null, filepath)
         }
-        try {
-            mediaRecorder?.prepare()
-        } catch (e: Exception) {
-            e.printStackTrace()
+        else{
+            context?.toast("filepath Error")
         }
 
-        mediaRecorder?.start()
     }
 
 
@@ -162,4 +169,5 @@ class MainFragment : Fragment() {
         if (isRecording)
             stopRecording()
     }
+
 }

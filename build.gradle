@@ -3,6 +3,7 @@ buildscript {
     ext.kotlin_version = "1.4.32"
     def nav_version = "2.3.5"
     ext.hilt_version = '2.35'
+    ext.roomVersion = "2.3.0"
     repositories {
         google()
         jcenter()

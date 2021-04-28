@@ -1,21 +1,24 @@
 package com.voice.voicerecorder.ui.records
 
-import android.media.MediaPlayer
 import android.os.Bundle
 import android.os.Handler
-import android.util.Log
+import android.os.Looper
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.SeekBar
 import androidx.core.app.ActivityCompat
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.voice.voicerecorder.R
 import com.voice.voicerecorder.adapters.VoiceRecordAdapter
 
 import com.voice.voicerecorder.databinding.FragmentRecordBinding
+import com.voice.voicerecorder.utils.RecordState
+import com.voice.voicerecorder.utils.toast
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 import java.io.File
 import javax.inject.Inject
 
@@ -26,240 +29,210 @@ class RecordFragment : Fragment() {
     @Inject
     lateinit var voiceRecordAdapter: VoiceRecordAdapter
 
+    private val recordListViewModel: RecordsListViewModel by lazy {
+        ViewModelProvider(this).get(RecordsListViewModel::class.java)
+    }
+
     private lateinit var binding: FragmentRecordBinding
-    private var allFiles = ArrayList<File>()
+
     private var isPlaying: Boolean = false
     private var fileToPlay: File? = null
-    private var mediaPlayer: MediaPlayer? = null
-    private var handler: Handler? = null
-    private var runnable: Runnable? = null
+
+    private var mainHandler: Handler? = null
 
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         binding = FragmentRecordBinding.inflate(inflater, container, false)
+
+        initializeData()
+        subscribe()
         setData()
         setClickListeners()
         return binding.root
     }
 
-    private fun setClickListeners() {
-
-        voiceRecordAdapter.setOnVoiceItemClickListener { file, position ->
-
-            playRecording(file)
-        }
-
-        binding.btmListLay.play.setOnClickListener {
-            if (isPlaying) {
-                pauseAudio()
-
-            } else {
-
-                if (fileToPlay != null) {
-                    resumeAudio()
-                }
-
-            }
-        }
-
-
-        binding.btmListLay.seekBar.setOnSeekBarChangeListener(object :
-            SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-            }
-
-            override fun onStartTrackingTouch(seekBar: SeekBar?) {
-                if (mediaPlayer != null) {
-                    pauseAudio()
-                }
-            }
-
-            override fun onStopTrackingTouch(seekBar: SeekBar?) {
-                if (mediaPlayer != null)
-                    if (fileToPlay != null) {
-                        val progress = seekBar?.progress
-                        progress?.let { mediaPlayer!!.seekTo(it) }
-                        resumeAudio()
-
-                    }
-            }
-
+    private fun initializeData() {
+        mainHandler = Handler(Looper.getMainLooper())
+        recordListViewModel.initMediaPlayer()
+        recordListViewModel.recordList.observe(viewLifecycleOwner, { list ->
+            voiceRecordAdapter.submitList(list)
         })
 
-
     }
-
-    private fun playRecording(file: File) {
-        fileToPlay = file
-        if (isPlaying) {
-            stopPlayingVoiceItem()
-            playVoiceItem(fileToPlay)
-        } else {
-
-            playVoiceItem(fileToPlay)
-        }
-
-    }
-
-
-    fun stopPlayingVoiceItem() {
-        isPlaying = false
-        mediaPlayer?.stop()
-
-
-        binding.btmListLay.play.setImageDrawable(context?.let {
-            ActivityCompat.getDrawable(
-                it,
-                R.drawable.ic_baseline_play_arrow_24
-            )
-        })
-
-        binding.btmListLay.mediaplayerStatus.text = "Stopped"
-
-        runnable?.let { handler?.removeCallbacks(it) }
-
-    }
-
-    private fun playVoiceItem(file: File?) {
-
-        isPlaying = true
-        mediaPlayer = MediaPlayer().apply {
-            setDataSource(file?.absolutePath)
-            prepare()
-        }
-
-
-        val behavior = BottomSheetBehavior.from(binding.btmListLay.root)
-        behavior.state = BottomSheetBehavior.STATE_EXPANDED
-
-        mediaPlayer?.start()
-        binding.btmListLay.filenameTv.text = file?.name
-        binding.btmListLay.mediaplayerStatus.text = "Playing"
-        binding.btmListLay.play.setImageDrawable(context?.let {
-            ActivityCompat.getDrawable(
-                it,
-                R.drawable.ic_baseline_pause_24
-            )
-        })
-
-
-        mediaPlayer?.setOnCompletionListener { mp ->
-
-            stopPlayingVoiceItem()
-            binding.btmListLay.mediaplayerStatus.text = "Finished"
-
-            binding.btmListLay.play.setImageDrawable(context?.let {
-                ActivityCompat.getDrawable(
-                    it,
-                    R.drawable.ic_baseline_play_arrow_24
-                )
-            })
-        }
-
-        binding.btmListLay.seekBar.max = mediaPlayer?.duration!!
-        handler = Handler()
-
-        updateRunnable()
-        handler?.postDelayed(runnable!!, 0)
-
-
-    }
-
-    private fun updateRunnable() {
-        runnable = object : Runnable {
-            override fun run() {
-                mediaPlayer?.currentPosition?.let { binding.btmListLay.seekBar.setProgress(it) }
-                handler?.postDelayed(this, 500)
-            }
-
-        }
-    }
-
 
     private fun setData() {
 
-        val filepath = activity?.getExternalFilesDir("/")?.absolutePath
-        val file = File(filepath)
-        if (file.listFiles() != null && file.listFiles().isNotEmpty())
-            allFiles.addAll(file.listFiles()!!)
-        voiceRecordAdapter.submitList(allFiles)
+        binding.btmListLay.seekBar.setOnTouchListener { v, event -> true }
 
         binding.recordList.apply {
             adapter = voiceRecordAdapter
             setHasFixedSize(true)
         }
 
+        recordListViewModel.progress.observe(viewLifecycleOwner, { progress ->
 
-    }
+            binding.btmListLay.seekBar.progress = progress
 
-    private fun pauseAudio() {
-        mediaPlayer?.pause()
-        isPlaying = false
-
-
-        binding.btmListLay.play.setImageDrawable(context?.let {
-            ActivityCompat.getDrawable(
-                it,
-                R.drawable.ic_baseline_play_arrow_24
-            )
         })
 
-        runnable?.let { handler?.removeCallbacks(it) }
 
     }
 
-    private fun resumeAudio() {
+
+    private fun subscribe() {
+
+        recordListViewModel.recordState.observe(viewLifecycleOwner, { state ->
+            when (state) {
+                is RecordState.Playing -> {
+                    isPlaying = true
+                    changeButtonIcon(isPlaying)
+                    setRecordTitle()
+                    setPlayerStatus("Playing")
 
 
+                    //pause player
+                    binding.btmListLay.play.setOnClickListener {
+                        recordListViewModel.pauseRecord()
+                        enableSeekBar(false)
+                    }
+                    // previous song
+                    binding.btmListLay.playPrev.setOnClickListener {
+                        recordListViewModel.playAgain()
+                        enableSeekBar(true)
+                    }
 
-        if (mediaPlayer?.currentPosition!! < mediaPlayer?.duration!!) {
-            mediaPlayer?.start()
-            isPlaying = true
+                }
+                is RecordState.Pause -> {
 
-            binding.btmListLay.play.setImageDrawable(context?.let {
-                ActivityCompat.getDrawable(
-                    it,
-                    R.drawable.ic_baseline_pause_24
-                )
-            })
+                    isPlaying = false
+                    setPlayerStatus("Paused")
+                    changeButtonIcon(false)
+                    binding.btmListLay.play.setOnClickListener {
+                        recordListViewModel.resumePlayingRecord()
+                        enableSeekBar(true)
+                    }
 
-            updateRunnable()
-            runnable?.let { handler?.postDelayed(it, 0) }
+                }
+                is RecordState.End -> {
+                    isPlaying = false
+                    enableSeekBar(false)
+                    changeButtonIcon(isPlaying)
+                    binding.btmListLay.seekBar.progress = 0
+
+                    binding.btmListLay.play.setOnClickListener {
+                        playNext()
+                    }
+                    binding.btmListLay.playNext.setOnClickListener {
+                        playNext()
+                    }
+                    binding.btmListLay.playPrev.setOnClickListener {
+                        playPrevious()
+                    }
+                    setPlayerStatus("Stopped")
+
+
+                }
+                is RecordState.Error -> {
+                    state.exception.message?.let { context?.toast(it) }
+                }
+
+
+            }
+        })
+
+
+        binding.btmListLay.playNext.setOnClickListener {
+            playNext()
+        }
+        binding.btmListLay.playPrev.setOnClickListener {
+            playPrevious()
+        }
+
+    }
+
+    private fun setPlayerStatus(s: String) {
+
+        binding.btmListLay.mediaplayerStatus.text = s
+
+    }
+
+
+    private fun playNext() {
+
+        recordListViewModel.playNext()
+        binding.btmListLay.seekBar.max = recordListViewModel.recordDuration
+        enableSeekBar(true)
+        isPlaying = true
+
+    }
+
+    private fun playPrevious() {
+        recordListViewModel.playPrevious()
+        binding.btmListLay.seekBar.max = recordListViewModel.recordDuration
+        enableSeekBar(true)
+        isPlaying = true
+
+    }
+
+    private fun enableSeekBar(b: Boolean) {
+        val run = object : Runnable {
+            override fun run() {
+                recordListViewModel.getLiveProgress()
+                mainHandler?.postDelayed(this, 1000)
+            }
+        }
+        if (b) {
+            mainHandler?.post(run)
         } else {
-            mediaPlayer?.stop()
-            mediaPlayer?.release()
-            binding.btmListLay.seekBar.progress = 0
-            if (fileToPlay != null)
-                playRecording(fileToPlay!!)
+            mainHandler?.removeCallbacksAndMessages(null)
         }
     }
 
+    private fun setRecordTitle() {
 
-    override fun onResume() {
-        super.onResume()
 
-        if(fileToPlay!=null){
-            playVoiceItem(fileToPlay)
-           pauseAudio()
+        binding.btmListLay.filenameTv.text = recordListViewModel.getTitle()
+    }
+
+    private fun changeButtonIcon(playing: Boolean) {
+        if (playing) {
+            binding.btmListLay.play.setImageDrawable(context?.let {
+                ActivityCompat.getDrawable(it, R.drawable.ic_baseline_pause_24)
+            })
+        } else {
+            binding.btmListLay.play.setImageDrawable(context?.let {
+                ActivityCompat.getDrawable(it, R.drawable.ic_baseline_play_arrow_24)
+            })
         }
+    }
+
+    private fun setClickListeners() {
+
+        voiceRecordAdapter.setOnVoiceItemClickListener { record, position ->
 
 
+            lifecycleScope.launch {
+                playWithFilepath(record.filePath, position)
+            }
 
+        }
 
 
     }
 
+    private fun playWithFilepath(filePath: String, position: Int) {
 
-    override fun onStop() {
-        super.onStop()
+        recordListViewModel.playRecord(filePath, position)
+        binding.btmListLay.seekBar.max = recordListViewModel.recordDuration
+        enableSeekBar(true)
+        val behavior = BottomSheetBehavior.from(binding.btmListLay.root)
+        behavior.state = BottomSheetBehavior.STATE_EXPANDED
 
-        stopPlayingVoiceItem()
-        if(mediaPlayer!=null){
-            mediaPlayer?.release()
-        }
+
     }
+
 
 }
