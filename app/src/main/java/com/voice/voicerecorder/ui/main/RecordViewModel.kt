@@ -27,7 +27,7 @@ class RecordViewModel @ViewModelInject constructor(val repository: RecordReposit
 
     //    private var isRecording:Boolean = false
     private lateinit var filePath: String
-    private var filename:String =""
+    private var filename: String = ""
 
     fun startRecording(title: String?, filepath: String) {
 
@@ -43,12 +43,7 @@ class RecordViewModel @ViewModelInject constructor(val repository: RecordReposit
     private fun record(title: String?) {
 
 
-        filename = if (title == null) {
-            val formatter = SimpleDateFormat("yyyy_MM_dd_hh_ss", Locale.ENGLISH)
-            "filename" + formatter.format(Date()) + ".3gp"
-        } else {
-            title
-        }
+        filename = title!!
 
 
         mediaRecorder = MediaRecorder().apply {
@@ -86,15 +81,11 @@ class RecordViewModel @ViewModelInject constructor(val repository: RecordReposit
             e.printStackTrace()
         }
 
-        val f = if (title == null) {
-            filename
-        } else {
-            title
-        }
+        val f = title ?: filename
 
 
         val record = Record(title = filename, filePath = "$filePath/$f")
-        Log.d("RRR", "stopRecord:${record.filePath} ")
+
         viewModelScope.launch {
             repository.insertRecord(record)
         }

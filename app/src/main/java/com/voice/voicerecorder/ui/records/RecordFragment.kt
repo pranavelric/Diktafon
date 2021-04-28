@@ -1,5 +1,7 @@
 package com.voice.voicerecorder.ui.records
 
+import android.graphics.*
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -8,15 +10,20 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.ItemTouchHelper
+import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.voice.voicerecorder.R
 import com.voice.voicerecorder.adapters.VoiceRecordAdapter
 
 import com.voice.voicerecorder.databinding.FragmentRecordBinding
 import com.voice.voicerecorder.utils.RecordState
+import com.voice.voicerecorder.utils.gone
 import com.voice.voicerecorder.utils.toast
+import com.voice.voicerecorder.utils.visible
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import java.io.File
@@ -58,8 +65,15 @@ class RecordFragment : Fragment() {
         mainHandler = Handler(Looper.getMainLooper())
         recordListViewModel.initMediaPlayer()
         recordListViewModel.recordList.observe(viewLifecycleOwner, { list ->
+            if(list.isEmpty()){
+                binding.emptyLay.visible()
+            }
+            else{
+                binding.emptyLay.gone()
+            }
             voiceRecordAdapter.submitList(list)
         })
+        setSwipeToDelete()
 
     }
 
@@ -100,7 +114,7 @@ class RecordFragment : Fragment() {
                     }
                     // previous song
                     binding.btmListLay.playPrev.setOnClickListener {
-                        recordListViewModel.playAgain()
+                        recordListViewModel.playPrevious()
                         enableSeekBar(true)
                     }
 
@@ -137,6 +151,11 @@ class RecordFragment : Fragment() {
                 }
                 is RecordState.Error -> {
                     state.exception.message?.let { context?.toast(it) }
+                }
+                is RecordState.Message -> {
+                    state.message.let {
+                        context?.toast(it)
+                    }
                 }
 
 
@@ -222,6 +241,129 @@ class RecordFragment : Fragment() {
 
 
     }
+
+
+    fun setSwipeToDelete() {
+        val itemTouchHelperCallback = object : ItemTouchHelper.SimpleCallback(
+            ItemTouchHelper.UP or ItemTouchHelper.DOWN,
+            ItemTouchHelper.LEFT
+        ) {
+            override fun onMove(
+                recyclerView: RecyclerView,
+                viewHolder: RecyclerView.ViewHolder,
+                target: RecyclerView.ViewHolder
+            ): Boolean {
+                return true
+            }
+
+            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+                val position = viewHolder.adapterPosition
+                val record = voiceRecordAdapter.currentList[position]
+
+
+
+                recordListViewModel.deleteRecord(record.filePath, record.id)
+
+            }
+
+            private val deleteIcon =
+                ContextCompat.getDrawable(activity!!, R.drawable.ic_baseline_delete_24)
+            private val intrinsicWidth = deleteIcon?.intrinsicWidth
+            private val intrinsicHeight = deleteIcon?.intrinsicHeight
+            private val backGround = ColorDrawable()
+            private val backgroundColor = Color.parseColor("#f44336")
+            private val clearPaint =
+                Paint().apply { xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR) }
+
+            override fun onChildDraw(
+                c: Canvas,
+                recyclerView: RecyclerView,
+                viewHolder: RecyclerView.ViewHolder,
+                dX: Float,
+                dY: Float,
+                actionState: Int,
+                isCurrentlyActive: Boolean
+            ) {
+                val itemView = viewHolder.itemView
+                val itemHeight = itemView.bottom - itemView.top
+                val isCanceled = dX == 0f && !isCurrentlyActive
+
+                if (isCanceled) {
+                    clearCanvas(
+                        c,
+                        itemView.right + dX,
+                        itemView.top.toFloat(),
+                        itemView.right.toFloat(),
+                        itemView.bottom.toFloat()
+                    )
+
+                    super.onChildDraw(
+                        c,
+                        recyclerView,
+                        viewHolder,
+                        dX,
+                        dY,
+                        actionState,
+                        isCurrentlyActive
+                    )
+                    return
+
+                }
+                // Draw red background
+                backGround.color = backgroundColor
+                backGround.setBounds(
+                    itemView.right + dX.toInt(),
+                    itemView.top,
+                    itemView.right,
+                    itemView.bottom
+                )
+                backGround.draw(c)
+                // Calculate position of delete icon
+                val deleteIconTop = itemView.top + (itemHeight - intrinsicHeight!!) / 2
+                val deleteIconMargin = (itemHeight - intrinsicHeight) / 2
+                val deleteIconLeft = itemView.right - deleteIconMargin - intrinsicWidth!!
+                val deleteIconRight = itemView.right - deleteIconMargin
+                val deleteIconBottom = deleteIconTop + intrinsicHeight
+                // draw delete icon
+                deleteIcon?.setBounds(
+                    deleteIconLeft,
+                    deleteIconTop,
+                    deleteIconRight,
+                    deleteIconBottom
+                )
+                deleteIcon?.draw(c)
+                super.onChildDraw(
+                    c,
+                    recyclerView,
+                    viewHolder,
+                    dX,
+                    dY,
+                    actionState,
+                    isCurrentlyActive
+                )
+
+
+            }
+
+            // private fun clearCanvas
+            private fun clearCanvas(
+                c: Canvas?,
+                left: Float,
+                top: Float,
+                right: Float,
+                bottom: Float
+            ) {
+                c?.drawRect(left, top, right, bottom, clearPaint)
+            }
+
+
+        }
+
+        ItemTouchHelper(itemTouchHelperCallback).apply {
+            attachToRecyclerView(binding.recordList)
+        }
+    }
+
 
     private fun playWithFilepath(filePath: String, position: Int) {
 

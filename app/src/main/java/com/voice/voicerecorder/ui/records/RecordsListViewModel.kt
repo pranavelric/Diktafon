@@ -23,12 +23,9 @@ class RecordsListViewModel @ViewModelInject constructor(val recordRepository: Re
 
     private var currentPosition: Int = -1
     var recordDuration: Int = 0
-
     val recordList: LiveData<List<Record>> = recordRepository.getAllRecords().asLiveData()
-
     private val _recordState: MutableLiveData<RecordState<Record>> = MutableLiveData()
     val recordState: LiveData<RecordState<Record>> get() = _recordState
-
 
     fun initMediaPlayer() {
         mediaPlayer = MediaPlayer()
@@ -40,6 +37,8 @@ class RecordsListViewModel @ViewModelInject constructor(val recordRepository: Re
     fun playRecord(filePath: String, position: Int) {
         currentPosition = position
 
+
+
         if (mediaPlayer?.isPlaying == true) {
             stopMediaPlayer()
             _recordState.value = RecordState.End
@@ -47,8 +46,6 @@ class RecordsListViewModel @ViewModelInject constructor(val recordRepository: Re
         try {
             if (mediaPlayer == null)
                 initMediaPlayer()
-
-            Log.d("RRR", "playRecord: ${filePath} ${mediaPlayer == null}")
 
             mediaPlayer?.reset()
             mediaPlayer?.setDataSource(filePath)
@@ -146,7 +143,7 @@ class RecordsListViewModel @ViewModelInject constructor(val recordRepository: Re
 
     fun getTitle() = recordList.value?.get(currentPosition)?.title
 
-    fun stopMediaPlayer() {
+    private fun stopMediaPlayer() {
         mediaPlayer?.stop()
 //        mediaPlayer?.release()
 //        mediaPlayer = null
@@ -155,6 +152,7 @@ class RecordsListViewModel @ViewModelInject constructor(val recordRepository: Re
 
     fun deleteRecord(filePath: String, id: Int) = viewModelScope.launch {
         recordRepository.delete(id)
+
         val fdelete: File = File(filePath)
         if (fdelete.exists()) {
             if (fdelete.delete()) {

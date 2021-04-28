@@ -31,14 +31,60 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/imageView2" />
 
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/inputLayout"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Enter recording title"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/heading_text"
+        android:layout_marginTop="@dimen/_16sdp"
+
+        android:layout_marginEnd="@dimen/_32sdp"
+        android:layout_marginStart="@dimen/_32sdp"
+        android:textColorHint="@color/dark_blue"
+        app:boxStrokeColor="@color/blue"
+        app:boxBackgroundColor="@color/white"
+        app:boxCornerRadiusBottomEnd="@dimen/_8sdp"
+        app:boxCornerRadiusTopEnd="@dimen/_8sdp"
+        app:boxCornerRadiusTopStart="@dimen/_8sdp"
+        app:boxCornerRadiusBottomStart="@dimen/_8sdp"
+        app:boxStrokeWidthFocused="@dimen/_2sdp"
+
+        app:counterEnabled="true"
+        app:counterMaxLength="30"
+
+
+        >
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/audioNameEt"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginVertical="@dimen/_10sdp"
+            android:paddingHorizontal="@dimen/_10sdp"
+            android:textAlignment="textStart"
+            android:lines="1"
+            android:maxLength="30"
+            android:maxLines="1"
+            android:minLines="1"
+            android:inputType="text"
+            android:imeOptions="actionDone"
+            />
+    </com.google.android.material.textfield.TextInputLayout>
+
     <Chronometer
         android:id="@+id/timer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="@dimen/_30sdp"
+        android:layout_margin="@dimen/_20sdp"
         android:textAlignment="center"
         android:textSize="52sp"
-        app:layout_constraintTop_toBottomOf="@id/heading_text" />
+        app:layout_constraintTop_toBottomOf="@id/inputLayout" />
+
+
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/mic_card"

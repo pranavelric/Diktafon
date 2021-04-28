@@ -31,7 +31,8 @@ class MainFragment : Fragment() {
 
     private var isRecording: Boolean = false
     private lateinit var binding: FragmentMainBinding
-
+    private var title: String? = null
+    private var filename: String? = null
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -130,7 +131,18 @@ class MainFragment : Fragment() {
 
     private fun stopRecording() {
         binding.timer.stop()
-        viewModel.stopRecording(null)
+        binding.audioNameEt.text?.clear()
+        binding.audioNameEt.isEnabled = true
+
+
+        filename = if (title == null || title.isNullOrEmpty()) {
+            filename
+        } else {
+            title + ".3gp"
+        }
+
+
+        viewModel.stopRecording(filename)
         binding.headingText.text = "Recording stopped, file saved"
 
     }
@@ -139,19 +151,27 @@ class MainFragment : Fragment() {
 
         binding.timer.base = SystemClock.elapsedRealtime()
         binding.timer.start()
+        binding.audioNameEt.isEnabled = false
 
 
         val filepath = activity?.getExternalFilesDir("/")?.absolutePath
         val formatter = SimpleDateFormat("yyyy_MM_dd_hh_ss", Locale.ENGLISH)
-        val filename = "filename" + formatter.format(Date()) + ".3gp"
+        title = binding.audioNameEt.text.toString()
+
+        filename = if (title == null || title.isNullOrEmpty()) {
+            "filename" + formatter.format(Date()) + ".3gp"
+        } else {
+            title + ".3gp"
+        }
+
+
 
 
         binding.headingText.text = "Recording started for file: ${filename}"
 
         if (filepath != null) {
-            viewModel.startRecording(null, filepath)
-        }
-        else{
+            viewModel.startRecording(filename, filepath)
+        } else {
             context?.toast("filepath Error")
         }
 
