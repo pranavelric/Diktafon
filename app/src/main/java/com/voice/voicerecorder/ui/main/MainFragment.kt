@@ -1,8 +1,11 @@
 package com.voice.voicerecorder.ui.main
 
+import android.app.AlertDialog
+import android.content.DialogInterface
 import android.media.MediaRecorder
 import android.os.Bundle
 import android.os.SystemClock
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -36,12 +39,40 @@ class MainFragment : Fragment() {
 
     private fun setClickListeners() {
 
+
         binding.list.setOnClickListener {
-            findNavController().navigate(R.id.action_mainFragment_to_recordFragment)
+
+            if (isRecording) {
+                showAlertDialog()
+            } else {
+                findNavController().navigate(R.id.action_mainFragment_to_recordFragment)
+            }
+
         }
+
         binding.micCard.setOnClickListener {
             setRecordBtnClickListener()
         }
+    }
+
+    private fun showAlertDialog() {
+        val dialogBuilder = AlertDialog.Builder(context)
+        dialogBuilder.setPositiveButton(
+            "Ok"
+        ) { dialog, which ->
+
+            stopRecording()
+            findNavController().navigate(R.id.action_mainFragment_to_recordFragment)
+            isRecording = false
+        }
+        dialogBuilder.setNegativeButton("Cancel", null)
+
+        val dialog = dialogBuilder.create()
+
+        dialog.setTitle("Audio still recording")
+        dialog.setMessage("Are you sure you want to stop recording?")
+        dialog.show()
+
     }
 
 
@@ -75,12 +106,18 @@ class MainFragment : Fragment() {
     }
 
     private fun stopRecording() {
-        binding.timer.stop()
 
+
+        binding.timer.stop()
         mediaRecorder?.stop()
         mediaRecorder?.release()
         mediaRecorder = null
         binding.headingText.text = "Recording stopped, file saved"
+        binding.recordBtn.setImageDrawable(activity?.let {
+            ContextCompat.getDrawable(it, R.drawable.ic_baseline_mic_24)
+        }
+        )
+        isRecording = false
 
     }
 
@@ -120,4 +157,9 @@ class MainFragment : Fragment() {
 
     }
 
+    override fun onStop() {
+        super.onStop()
+        if (isRecording)
+            stopRecording()
+    }
 }

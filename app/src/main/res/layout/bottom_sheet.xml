@@ -87,12 +87,12 @@
 
 
     <ImageView
-        android:background="?attr/selectableItemBackgroundBorderless"
-        android:clickable="true"
-        android:focusable="true"
         android:id="@+id/play_next"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:clickable="true"
+        android:focusable="true"
         android:src="@drawable/ic_baseline_skip_next_24"
         app:layout_constraintBottom_toBottomOf="@id/play"
         app:layout_constraintEnd_toEndOf="parent"
@@ -106,32 +106,36 @@
         android:id="@+id/play_prev"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:clickable="true"
+        android:focusable="true"
         android:src="@drawable/ic_baseline_skip_previous_24"
         app:layout_constraintBottom_toBottomOf="@id/play"
         app:layout_constraintEnd_toStartOf="@id/play"
+
+
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="@id/play"
-        app:tint="@color/white"
-
-
-        android:background="?attr/selectableItemBackgroundBorderless"
-        android:clickable="true"
-        android:focusable="true"
-        />
+        app:tint="@color/white" />
 
     <SeekBar
-        android:background="?attr/selectableItemBackgroundBorderless"
-        android:clickable="true"
-        android:focusable="true"
         android:id="@+id/seekBar"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/_16sdp"
         android:layout_marginTop="@dimen/_16sdp"
         android:layout_marginEnd="@dimen/_16sdp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:clickable="true"
+        android:focusable="true"
+        android:progressTint="@color/white"
+        android:thumbTint="@color/white"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/play" />
+        app:layout_constraintTop_toBottomOf="@id/play"
+        app:layout_constraintBottom_toBottomOf="parent"
+
+        />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
